@@ -130,6 +130,11 @@ The light test will go four rounds, then the while loop will break.
     info =keyboard_layout.write("Done\n")
     break                                                    # stop testing
 ```
+### Flow Chart
+![ed1df5386e07dc228cbbfbe83dfe6f0](https://user-images.githubusercontent.com/114200453/191912913-374ec68e-20b5-4762-9f6d-bdb805208591.png)
 
-### result
-![]()
+
+### Result
+![](https://github.com/MaxMa6150/ese5190-2022-lab1-firefly/blob/main/keyboard_visualization.gif)
+
+### Diagram of embedded system from 4.4
