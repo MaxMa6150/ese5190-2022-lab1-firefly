@@ -70,50 +70,65 @@ from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
 
 keys_pressed = [Keycode.O, Keycode.BACKSPACE]                 # For Q.4.3
-control_key = Keycode.SHIFT                                   # For Q.4.3
+control_key = Keycode.SHIFT                                    # For Q.4.3
 keyboard = Keyboard(usb_hid.devices)
 keyboard_layout = KeyboardLayoutUS(keyboard)
 ```
 
+Firstly, we set the integration time to 10 to have higher response rate.
+
+For the gesture test, we use gesture perception on APDS9960 sensor. When we wave hands and our gesture is detected, sensor.gesture will return 1, 2, 3, 4 which represent up, down, left and right. 
+
+Then the microcontroller will correspondingly display the direction of waving hands. The gesture display will run four times.
+
 ```python
 while True:
-    time.sleep(2)
-    info = keyboard_layout.write("Test gesture first!\n")
+    time.sleep(2)                                             # Break for user to move the mouse to text file
+    info = keyboard_layout.write("Test gesture first!\n")     # Start the gesture section
     i = 0
-    while i <= 3:
-        gesture = sensor.gesture()
-        if gesture == 1:
-            info = keyboard_layout.write("Going up!\n")
+    while i <= 3:                                             # Run the gesture test 4 times
+        gesture = sensor.gesture()                            # track the reading from gesture sensor
+        if gesture == 1:                                      # gesture is "up"
+            info = keyboard_layout.write("Going up!\n")       # keyboard display
             time.sleep(0.1)
             i += 1
-        if gesture == 2:
+        if gesture == 2:                                      # gesture is "down"
             info = keyboard_layout.write("Going down!\n")
             time.sleep(0.1)
             i += 1
-        if gesture == 3:
+        if gesture == 3:                                      # gesture is "left"
             info = keyboard_layout.write("Going left!\n")
             time.sleep(0.1)
             i += 1
-        if gesture == 4:
+        if gesture == 4:                                      # gesture is "right"
             info = keyboard_layout.write("Going right!\n")
             time.sleep(0.1)
             i += 1
-    time.sleep(1)
+```
+After four rounds of gesture display, we continue to the brightness testing. The light detecting logic is similar to Q.3.2.
+
+After detecting the light change, the microcontroller will correspondingly display "going bright/dark".
+
+The light test will go four rounds, then the while loop will break.
+
+
+```python
+    time.sleep(1)                                            # break between two sections
     info = keyboard_layout.write("Then test brightness!\n")
     i = 0
-    while i <= 5:
-        r, g, b, c = sensor.color_data
-        if c >= (c_last+100):
-            info = keyboard_layout.write("Going bright!\n")
-            time.sleep(0.5)
+    while i <= 3:                                            # run the gesture test 3 times
+        r, g, b, c = sensor.color_data                       # track the reading from color sensor
+        if c >= (c_last+100):                                # indicate that it is going bright
+            info = keyboard_layout.write("Going bright!\n")  # keyboard display
+            time.sleep(1)                                  # break
             i += 1
-        elif c <= (c_last-100):
-            info = keyboard_layout.write("Going dark!\n")
-            time.sleep(0.5)
+        elif c <= (c_last-100):                              # indicate that it is going dark
+            info = keyboard_layout.write("Going dark!\n")    
+            time.sleep(1)
             i += 1
         c_last = c
     info =keyboard_layout.write("Done\n")
-    break
+    break                                                    # stop testing
 ```
 
 ### result
