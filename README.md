@@ -21,8 +21,6 @@ import time
 import adafruit_apds9960.apds9960
 import neopixel
 
-
-#i2c = board.STEMMA_I2C()
 i2c = busio.I2C(board.SCL1, board.SDA1)
 sensor = adafruit_apds9960.apds9960.APDS9960(i2c)
 sensor.enable_proximity = True                         # for brightness sensor
@@ -37,10 +35,86 @@ pixels = neopixel.NeoPixel(board.NEOPIXEL, 1)          # for RP2040's LED displa
 In this section, we used APDS9960 color sensor to track the brightness reading of firefly flashing, and then use RP2040's LED to simutaneously display the flashing. when the firefly goes bright, the LED should get bright, and the LED should get dim when the firefly goes dim. Then the board would flash in sync with the firefly in the video.
 
 ### Basic Logic
+Firstly, we initialize a variable named c_last which indicate the brightness of least reading.
+
+When the firefly starts flashing (goes from dim to bright), the "clear" channel reading will have a “value jump” (always above 100). So when new c (clear) value is 100 higher than the last c value, the LED will be on.
+
+When the firefly goes from bright to dim, the new c (clear) value will be 100 lower than the last c value, and we turn off the LED.
+
+```python
+c_last = 0                                             # initialize the parameter
+while True:
+    r, g, b, c = sensor.color_data                     # track the reading from color sensor
+    print(c)
+    if c >= (c_last+100):                              # indicate that it is going bright
+        pixels.fill((255, 255, 255))                   # RP2040's LED display (on)
+    elif c <= (c_last-100):                            # indicate that is going dim
+        pixels.fill((0, 0, 0))                         # RP2040's LED display (off)
+    c_last = c
+```
 
 ### Result
-![]()
+![](https://github.com/MaxMa6150/ese5190-2022-lab1-firefly/blob/main/firefly_visualization.gif)
+
+RP2040's LED flashed in sync with the firefly in the video.
 
 # Q.4.4 Keyboard Visualization
+In this section, we used APDS9960 gesture perception and color sensor to control the microcontroller keyboard dispaly. Firstly, when we wave our hand in front of the sensor, RP2040 will simutaneously give "goes up/down/left/right" text display on PC. Then when we expose the sensor to a light sourse or cover it up, it will RP2040 will simutaneously give "goes bright/dark" text display on PC.
+
+### Basic Logic
+additional setup:
+```python
+import usb_hid
+from adafruit_hid.keyboard import Keyboard
+from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
+from adafruit_hid.keycode import Keycode
+
+keys_pressed = [Keycode.O, Keycode.BACKSPACE]                 # For Q.4.3
+control_key = Keycode.SHIFT                                   # For Q.4.3
+keyboard = Keyboard(usb_hid.devices)
+keyboard_layout = KeyboardLayoutUS(keyboard)
+```
+
+```python
+while True:
+    time.sleep(2)
+    info = keyboard_layout.write("Test gesture first!\n")
+    i = 0
+    while i <= 3:
+        gesture = sensor.gesture()
+        if gesture == 1:
+            info = keyboard_layout.write("Going up!\n")
+            time.sleep(0.1)
+            i += 1
+        if gesture == 2:
+            info = keyboard_layout.write("Going down!\n")
+            time.sleep(0.1)
+            i += 1
+        if gesture == 3:
+            info = keyboard_layout.write("Going left!\n")
+            time.sleep(0.1)
+            i += 1
+        if gesture == 4:
+            info = keyboard_layout.write("Going right!\n")
+            time.sleep(0.1)
+            i += 1
+    time.sleep(1)
+    info = keyboard_layout.write("Then test brightness!\n")
+    i = 0
+    while i <= 5:
+        r, g, b, c = sensor.color_data
+        if c >= (c_last+100):
+            info = keyboard_layout.write("Going bright!\n")
+            time.sleep(0.5)
+            i += 1
+        elif c <= (c_last-100):
+            info = keyboard_layout.write("Going dark!\n")
+            time.sleep(0.5)
+            i += 1
+        c_last = c
+    info =keyboard_layout.write("Done\n")
+    break
+```
+
 ### result
 ![]()
